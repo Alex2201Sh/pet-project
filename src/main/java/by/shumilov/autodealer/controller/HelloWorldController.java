@@ -10,15 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class HelloWorldController {
 
-//    private final UserRepository userRepository;
 
     @GetMapping("/hello")
     public ResponseEntity<String> hello() {
         return ResponseEntity.ok("Hello3456789");
     }
 
-//    @GetMapping("/users")
-//    public ResponseEntity<?> getUsers() {
-//        return ResponseEntity.ok(userRepository.findAll());
-//    }
+
 }
