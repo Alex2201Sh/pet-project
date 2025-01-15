@@ -5,21 +5,30 @@ import by.shumilov.autodealer.entity.Taco;
 import by.shumilov.autodealer.repository.TacoRepository;
 import by.shumilov.autodealer.web.api.TacoController;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
-
-@SpringBootTest
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TacoControllerTest {
+
+    @Autowired
+    private WebTestClient testClient;
 
     @Test
     public void shouldReturnRecentTacos() {
@@ -76,5 +85,33 @@ public class TacoControllerTest {
         ingredients.add(new Ingredient("INGB", Ingredient.Type.PROTEIN));
         taco.setIngredients(ingredients);
         return taco;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldSaveATaco() {
+        TacoRepository tacoRepo = Mockito.mock(TacoRepository.class);
+        WebTestClient testClient = WebTestClient.bindToController(new TacoController(tacoRepo)).build();
+        Mono<Taco> unsavedTacoMono = Mono.just(testTaco(1L));
+        Taco savedTaco = testTaco(1L);
+        Flux<Taco> savedTacoMono = Flux.just(savedTaco);
+        when(tacoRepo.saveAll(any(Mono.class))).thenReturn(savedTacoMono);
+        testClient.post().uri("/api/tacos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(unsavedTacoMono, Taco.class).exchange()
+                .expectStatus().isCreated()
+                .expectBody(Taco.class).isEqualTo(savedTaco);
+    }
+
+    @Test
+    public void shouldReturnRecentTacos2() throws IOException {
+        testClient.get().uri("/api/tacos?recent")
+                .accept(MediaType.APPLICATION_JSON).exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$").isArray()
+                .jsonPath("$.length()").isEqualTo(3)
+                .jsonPath("$[?(@.name == ‘Carnivore’)]").exists()
+                .jsonPath("$[?(@.name == ‘Bovine Bounty’)]").exists()
+                .jsonPath("$[?(@.name == ‘Veg-Out’)]").exists();
     }
 }

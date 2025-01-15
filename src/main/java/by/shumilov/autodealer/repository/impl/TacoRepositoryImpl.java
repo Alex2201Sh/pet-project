@@ -31,6 +31,13 @@ public class TacoRepositoryImpl implements TacoRepository {
         return Mono.just(taco);
     }
 
+    @Override
+    public Flux<Taco> saveAll(Mono<Taco> taco) {
+        taco.doOnNext(taco1 -> tacoList.add(taco1))
+                .subscribe();
+        return Flux.from(taco);
+    }
+
     private Taco testTaco(Long number) {
         Taco taco = new Taco();
         taco.setId(number != null ? number.toString() : "TESTID");

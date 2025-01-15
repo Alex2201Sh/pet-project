@@ -11,4 +11,5 @@ public interface TacoRepository
 
     Mono<Taco> save(Taco taco);
 
+    Flux<Taco> saveAll(Mono<Taco> taco);
 }

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 
 @Configuration
-public class RouterFunctionConfig {
+public class HelloWorldRouterFunctionConfig {
     @Bean
     public RouterFunction<?> helloRouterFunction() {
         return route(GET("/hello"),
